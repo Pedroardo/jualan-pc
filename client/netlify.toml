@@ -1,0 +1,33 @@
+# Konfigurasi Netlify untuk folder client/ ini.
+# Di dashboard Netlify, set "Base directory" = client saat membuat site
+# (repo kamu berupa monorepo: client/ + server/ dalam satu repo yang sama).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # "/api" (relatif) — bukan URL penuh ke Render. Dengan begini, browser
+  # selalu menganggap request API datang dari domain Netlify sendiri
+  # (same-origin), sehingga cookie sesi login admin tetap terkirim tanpa
+  # perlu melonggarkan pengaturan keamanan cookie (SameSite).
+  VITE_API_URL = "/api"
+
+# PENTING — ganti URL di bawah ini setelah backend live di Render, contoh:
+# "https://pc-portfolio-server.onrender.com/api/:splat"
+# Ini membuat Netlify meneruskan (reverse proxy) setiap request /api/*
+# dari browser ke backend Express di Render, tanpa browser pernah tahu
+# domain Render-nya sama sekali.
+[[redirects]]
+  from = "/api/*"
+  to = "https://REPLACE-WITH-YOUR-RENDER-URL.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# Fallback SPA — wajib untuk React Router. Tanpa ini, membuka langsung
+# /produk/xxxx atau me-refresh halaman itu akan menampilkan 404 dari
+# Netlify (karena secara fisik tidak ada file di path tersebut).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

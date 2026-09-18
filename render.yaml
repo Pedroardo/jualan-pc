@@ -1,0 +1,48 @@
+# Render Blueprint — cara Render tahu cara build & jalankan server/ secara
+# otomatis. Taruh file ini di ROOT repo (bukan di dalam folder server/).
+#
+# Cara pakai: di dashboard Render, pilih "New > Blueprint", hubungkan repo
+# GitHub kamu. Render akan otomatis mendeteksi file ini dan membuat service
+# di bawah sesuai konfigurasi ini. Variabel dengan "sync: false" akan
+# diminta diisi manual di dashboard (supaya secret tidak pernah masuk Git).
+services:
+  - type: web
+    name: pc-portfolio-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render selalu ada di belakang reverse proxy miliknya sendiri —
+      # aktifkan supaya rate-limiter di index.js membaca IP pengunjung
+      # yang benar, bukan IP internal Render.
+      - key: TRUST_PROXY
+        value: "true"
+
+      # Digenerate otomatis oleh Render saat pertama kali deploy — acak,
+      # panjang, dan tidak pernah terlihat oleh siapa pun termasuk kamu
+      # kecuali dibuka manual di dashboard.
+      - key: JWT_SECRET
+        generateValue: true
+
+      - key: JWT_EXPIRES_IN
+        value: "604800"
+
+      # Diisi manual di dashboard Render setelah blueprint ini di-apply:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Isi dengan URL frontend Netlify kamu setelah itu juga sudah live,
+      # misal: https://rakit.netlify.app (tanpa trailing slash).
+      - key: CLIENT_ORIGIN
+        sync: false
